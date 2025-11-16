@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 // Show registration page
 const showRegisterPage = (req, res) => {
@@ -25,19 +25,29 @@ const loginUser = async (req, res) => {
             });
         }
 
-        // Check password (In production, use bcrypt to compare hashed passwords)
-        if (user.password !== password) {
+        // Check password using bcrypt
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
             return res.status(400).render('login', {
                 error: 'Wrong password. Please try again.',
                 formData: req.body
             });
         }
 
-        // Login successful - redirect to appropriate page based on user type with user ID in query
+        // Create session
+        req.session.user = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            userType: user.userType,
+            contact: user.contact
+        };
+
+        // Login successful - redirect to appropriate page based on user type
         if (user.userType === 'farmer') {
-            res.redirect(`/farmer-dashboard?userId=${user._id}`);
+            res.redirect('/farmer-dashboard');
         } else if (user.userType === 'client') {
-            res.redirect(`/search?userId=${user._id}`);
+            res.redirect('/search');
         } else {
             res.redirect('/');
         }
@@ -65,12 +75,16 @@ const registerUser = async (req, res) => {
             });
         }
 
+        // Hash password
+        const saltRounds = 12;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
         // Create new user
         const newUser = new User({
             userType,
             name,
             email,
-            password, // In production, you should hash this password
+            password: hashedPassword,
             contact
         });
         
@@ -90,9 +104,22 @@ const registerUser = async (req, res) => {
     }
 };
 
+// Handle user logout
+const logoutUser = (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).json({ success: false, message: 'Logout failed' });
+        }
+        res.clearCookie('connect.sid'); // Clear session cookie
+        res.redirect('/?message=Logged out successfully');
+    });
+};
+
 module.exports = {
     showRegisterPage,
     showLoginPage,
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
 };

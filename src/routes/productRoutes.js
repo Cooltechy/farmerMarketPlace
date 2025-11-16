@@ -8,23 +8,24 @@ const {
     deleteProduct,
     toggleProductAvailability
 } = require('../controllers/productController');
+const { requireAuth, requireFarmer } = require('../middleware/auth');
 
-// GET - Show add product page
-router.get('/add-product', showAddProductPage);
+// GET - Show add product page (farmer only)
+router.get('/add-product', requireAuth, requireFarmer, showAddProductPage);
 
-// POST - Handle add product form submission
-router.post('/add-product', addProduct);
+// POST - Handle add product form submission (farmer only)
+router.post('/add-product', requireAuth, requireFarmer, addProduct);
 
-// GET - Show farmer's products
-router.get('/farmer/:farmerId/products', showFarmerProducts);
+// GET - Show farmer's products (authenticated users only)
+router.get('/farmer/:farmerId/products', requireAuth, showFarmerProducts);
 
-// GET - Show all products (browse)
-router.get('/products', showAllProducts);
+// GET - Show all products (browse) - authenticated users only
+router.get('/products', requireAuth, showAllProducts);
 
-// DELETE - Delete product
-router.delete('/products/:productId', deleteProduct);
+// DELETE - Delete product (farmer only)
+router.delete('/products/:productId', requireAuth, requireFarmer, deleteProduct);
 
-// PUT - Toggle product availability
-router.put('/products/:productId/toggle', toggleProductAvailability);
+// PUT - Toggle product availability (farmer only)
+router.put('/products/:productId/toggle', requireAuth, requireFarmer, toggleProductAvailability);
 
 module.exports = router;

@@ -397,14 +397,16 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">🛒 AgriConnect - Marketplace</div>
-            <div class="nav-links">
-                <a href="/search">Home</a>
+                        <div class="nav-links">
+                <a href="/search">Search Products</a>
+                <a href="/products">Browse Products</a>
                 <a href="/client-dashboard">Dashboard</a>
+                <a href="/orders/history">My Orders</a>
                 <span style="color: rgba(255,255,255,0.8); margin: 0 10px;">|</span>
                 <span style="color: rgba(255,255,255,0.9); padding: 8px 12px;">
                     👤 <%= user.name || 'User' %>
                 </span>
-                <a href="/">Logout</a>
+                <a href="/logout">Logout</a>
             </div>
         </div>
     </nav>

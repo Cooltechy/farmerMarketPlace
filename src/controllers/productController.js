@@ -4,29 +4,25 @@ const User = require('../models/User');
 // Show add product page
 const showAddProductPage = async (req, res) => {
     try {
-        const { userId } = req.query;
-        
-        if (!userId) {
-            return res.status(400).render('add-product', {
-                error: 'User not authenticated. Please login again.',
-                farmerId: null
-            });
+        // Get user from session
+        if (!req.session || !req.session.user) {
+            return res.redirect('/login?error=Please log in to add products');
         }
-
-        // Fetch farmer details from database
-        const farmer = await User.findById(userId);
         
-        if (!farmer) {
-            return res.status(404).render('add-product', {
-                error: 'Farmer not found. Please login again.',
+        const user = req.session.user;
+        
+        // Verify user is a farmer
+        if (user.userType !== 'farmer') {
+            return res.status(403).render('add-product', {
+                error: 'Only farmers can add products.',
                 farmerId: null
             });
         }
 
         res.render('add-product', { 
-            farmerId: farmer._id,
-            farmerName: farmer.name,
-            farmerContact: farmer.contact
+            farmerId: user._id,
+            farmerName: user.name,
+            farmerContact: user.contact
         });
         
     } catch (error) {

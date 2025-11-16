@@ -406,10 +406,10 @@
         <div class="nav-container">
             <div class="logo">🛒 AgriConnect</div>
             <div class="nav-links">
-                <a href="/search?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>">Search</a>
-                <a href="/client-dashboard?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>">Dashboard</a>
-                <a href="/orders/history?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>">Orders</a>
-                <a href="/">Home</a>
+                <a href="/search">Search</a>
+                <a href="/client-dashboard">Dashboard</a>
+                <a href="/orders/history">Orders</a>
+                <a href="/logout">Logout</a>
             </div>
         </div>
     </nav>
@@ -460,7 +460,6 @@
         <div class="filter-section">
             <h3 style="margin-bottom: 20px; color: #333;">🔍 Filter & Search Orders</h3>
             <form method="GET" action="/orders/history" style="width: 100%;">
-                <input type="hidden" name="userId" value="<%= typeof buyerId !== 'undefined' ? buyerId : '' %>">
                 
                 <div class="filter-grid">
                     <div class="filter-group">
@@ -496,7 +495,7 @@
                     
                     <div class="filter-group" style="display: flex; gap: 10px; align-items: end;">
                         <button type="submit" class="filter-btn" style="flex: 1;">Apply Filters</button>
-                        <a href="/orders/history?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>" class="filter-btn" style="background: #666; flex: 1;">Clear All</a>
+                        <a href="/orders/history" class="filter-btn" style="background: #666; flex: 1;">Clear All</a>
                     </div>
                 </div>
             </form>
@@ -519,7 +518,7 @@
                     <div class="no-orders-icon">❌</div>
                     <h3>Error Loading Orders</h3>
                     <p><%= error %></p>
-                    <a href="/orders/history?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>" class="btn btn-primary">Retry</a>
+                    <a href="/orders/history" class="btn btn-primary">Retry</a>
                 </div>
             <% } else if (typeof orders !== 'undefined' && orders.length > 0) { %>
                 <% orders.forEach(order => { %>
@@ -596,10 +595,10 @@
                     <h3>No Orders Found</h3>
                     <% if (typeof filters !== 'undefined' && (filters.status !== 'all' || filters.dateFrom || filters.dateTo)) { %>
                         <p>No orders match your current filters. Try adjusting your search criteria.</p>
-                        <a href="/orders/history?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>" class="btn btn-primary">Clear Filters</a>
+                        <a href="/orders/history" class="btn btn-primary">Clear Filters</a>
                     <% } else { %>
                         <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
-                        <a href="/search?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>" class="btn btn-primary">Start Shopping</a>
+                        <a href="/search" class="btn btn-primary">Start Shopping</a>
                     <% } %>
                 </div>
             <% } %>
@@ -609,7 +608,7 @@
         <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
         <div class="pagination">
             <% if (typeof hasPrevPage !== 'undefined' && hasPrevPage) { %>
-                <a href="?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>&page=<%= typeof prevPage !== 'undefined' ? prevPage : 1 %>&status=<%= typeof filters !== 'undefined' ? filters.status : 'all' %>&dateFrom=<%= typeof filters !== 'undefined' ? filters.dateFrom : '' %>&dateTo=<%= typeof filters !== 'undefined' ? filters.dateTo : '' %>&limit=<%= typeof filters !== 'undefined' ? filters.limit : 10 %>">
+                <a href="?page=<%= typeof prevPage !== 'undefined' ? prevPage : 1 %>&status=<%= typeof filters !== 'undefined' ? filters.status : 'all' %>&dateFrom=<%= typeof filters !== 'undefined' ? filters.dateFrom : '' %>&dateTo=<%= typeof filters !== 'undefined' ? filters.dateTo : '' %>&limit=<%= typeof filters !== 'undefined' ? filters.limit : 10 %>"
                     ← Previous
                 </a>
             <% } %>
@@ -625,14 +624,14 @@
                 <% if (i === currentPage) { %>
                     <span class="current"><%= i %></span>
                 <% } else { %>
-                    <a href="?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>&page=<%= i %>&status=<%= typeof filters !== 'undefined' ? filters.status : 'all' %>&dateFrom=<%= typeof filters !== 'undefined' ? filters.dateFrom : '' %>&dateTo=<%= typeof filters !== 'undefined' ? filters.dateTo : '' %>&limit=<%= typeof filters !== 'undefined' ? filters.limit : 10 %>">
+                    <a href="?page=<%= i %>&status=<%= typeof filters !== 'undefined' ? filters.status : 'all' %>&dateFrom=<%= typeof filters !== 'undefined' ? filters.dateFrom : '' %>&dateTo=<%= typeof filters !== 'undefined' ? filters.dateTo : '' %>&limit=<%= typeof filters !== 'undefined' ? filters.limit : 10 %>"
                         <%= i %>
                     </a>
                 <% } %>
             <% } %>
             
             <% if (typeof hasNextPage !== 'undefined' && hasNextPage) { %>
-                <a href="?userId=<%= typeof buyerId !== 'undefined' ? buyerId : '' %>&page=<%= typeof nextPage !== 'undefined' ? nextPage : 2 %>&status=<%= typeof filters !== 'undefined' ? filters.status : 'all' %>&dateFrom=<%= typeof filters !== 'undefined' ? filters.dateFrom : '' %>&dateTo=<%= typeof filters !== 'undefined' ? filters.dateTo : '' %>&limit=<%= typeof filters !== 'undefined' ? filters.limit : 10 %>">
+                <a href="?page=<%= typeof nextPage !== 'undefined' ? nextPage : 2 %>&status=<%= typeof filters !== 'undefined' ? filters.status : 'all' %>&dateFrom=<%= typeof filters !== 'undefined' ? filters.dateFrom : '' %>&dateTo=<%= typeof filters !== 'undefined' ? filters.dateTo : '' %>&limit=<%= typeof filters !== 'undefined' ? filters.limit : 10 %>">
                     Next →
                 </a>
             <% } %>

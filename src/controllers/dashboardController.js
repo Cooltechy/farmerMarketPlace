@@ -1,41 +1,16 @@
 // Show farmer dashboard
 const showFarmerDashboard = async (req, res) => {
     try {
-        const User = require('../models/User');
-        let user = req.user;
-        
-        // Try to get user from userId query parameter if available
-        if (!user && req.query.userId) {
-            console.log(`🧑‍🌾 Farmer Dashboard: Looking for user with ID: ${req.query.userId}`);
-            try {
-                user = await User.findById(req.query.userId);
-                if (user) {
-                    console.log(`🆔 Farmer Dashboard: Using specified user - ${user.name} (${user.email}) [ID: ${req.query.userId}]`);
-                }
-            } catch (err) {
-                console.error('Error fetching user by ID:', err);
-            }
+        // Get user from session
+        if (!req.session || !req.session.user) {
+            return res.redirect('/login?error=Please log in to access farmer dashboard');
         }
         
-        // If no user found by ID, try to get any farmer user from database
-        if (!user) {
-            user = await User.findOne({ userType: 'farmer' }).sort({ createdAt: -1 });
-            if (user) {
-                console.log(`👨‍🌾 Farmer Dashboard: Using farmer user - ${user.name} (${user.email})`);
-            }
-        }
+        const user = req.session.user;
         
-        // If still no user found, create a default farmer user
-        if (!user) {
-            user = new User({
-                name: 'Demo Farmer',
-                email: 'farmer@demo.com',
-                password: 'demo123',
-                userType: 'farmer',
-                contact: '9876543210'
-            });
-            await user.save();
-            console.log('Created demo farmer user:', user._id);
+        // Verify user is a farmer
+        if (user.userType !== 'farmer') {
+            return res.redirect('/login?error=Farmer access required');
         }
 
         const Order = require('../models/Order');
@@ -240,43 +215,16 @@ const showFarmerDashboard = async (req, res) => {
 // Show client dashboard - enhanced with product search and recommendations
 const showClientDashboard = async (req, res) => {
     try {
-        const User = require('../models/User');
-        let user = req.user;
-        
-        // Try to get user from userId query parameter if available
-        if (!user && req.query.userId) {
-    
-            try {
-                user = await User.findById(req.query.userId);
-                if (user) {
-                    console.log(`🆔 Client Dashboard: Using specified user - ${user.name} (${user.email}) [ID: ${req.query.userId}]`);
-                } else {
-                    console.log(`❌ Client Dashboard: No user found with ID: ${req.query.userId}`);
-                }
-            } catch (err) {
-                console.error('Error fetching user by ID:', err);
-            }
+        // Get user from session
+        if (!req.session || !req.session.user) {
+            return res.redirect('/login?error=Please log in to access client dashboard');
         }
         
-        // If no user found by ID, try to get any client user from database
-        if (!user) {
-            user = await User.findOne({ userType: 'client' }).sort({ createdAt: -1 });
-            if (user) {
-                console.log(`📱 Client Dashboard: Using client user - ${user.name} (${user.email})`);
-            }
-        }
+        const user = req.session.user;
         
-        // If still no user found, create a default client user
-        if (!user) {
-            user = new User({
-                name: 'Demo Client',
-                email: 'client@demo.com',
-                password: 'demo123',
-                userType: 'client',
-                contact: '9876543210'
-            });
-            await user.save();
-            console.log('Created demo client user:', user._id);
+        // Verify user is a client
+        if (user.userType !== 'client') {
+            return res.redirect('/login?error=Client access required');
         }
 
         const Order = require('../models/Order');

@@ -156,59 +156,12 @@ const getSearchSuggestions = async (req, res) => {
 
 // GET - Search page
 router.get('/search', async (req, res) => {
-    let user;
-    
-    // Try to get user from userId query parameter
-    if (req.query.userId) {
-        try {
-            const User = require('../models/User');
-            user = await User.findById(req.query.userId);
-            if (user) {
-                console.log(`🔍 Search Page: Using specified user - ${user.name} (${user.email}) [ID: ${req.query.userId}]`);
-            }
-        } catch (error) {
-            console.error('Error fetching user:', error);
-        }
+    // Require authentication for search functionality
+    if (!req.session || !req.session.user) {
+        return res.redirect('/login?error=Please log in to search products');
     }
     
-    // If no user found by ID, try to get any client user from database
-    if (!user) {
-        try {
-            const User = require('../models/User');
-            user = await User.findOne({ userType: 'client' }).sort({ createdAt: -1 });
-            if (user) {
-                console.log(`🛒 Search Page: Using client user - ${user.name} (${user.email})`);
-            }
-        } catch (error) {
-            console.error('Error fetching client user:', error);
-        }
-    }
-    
-    // If still no user found, create a default client user
-    if (!user) {
-        try {
-            const User = require('../models/User');
-            user = new User({
-                name: 'Demo Client',
-                email: 'client@demo.com',
-                password: 'demo123',
-                userType: 'client',
-                contact: '9876543210'
-            });
-            await user.save();
-            console.log('🆕 Search Page: Created demo client user:', user._id);
-        } catch (error) {
-            console.error('Error creating demo user:', error);
-            // Final fallback
-            user = {
-                _id: 'temp_id',
-                name: 'Guest User',
-                email: 'guest@example.com',
-                userType: 'client',
-                contact: '0000000000'
-            };
-        }
-    }
+    const user = req.session.user;
     
     res.render('search', {
         query: req.query.q || '',
@@ -217,10 +170,11 @@ router.get('/search', async (req, res) => {
     });
 });
 
-// GET - Search API
-router.get('/api/search', searchProducts);
+// GET - Search API (require authentication)
+const { requireAuth } = require('../middleware/auth');
+router.get('/api/search', requireAuth, searchProducts);
 
-// GET - Search suggestions API
-router.get('/api/suggestions', getSearchSuggestions);
+// GET - Search suggestions API (require authentication)
+router.get('/api/suggestions', requireAuth, getSearchSuggestions);
 
 module.exports = router;

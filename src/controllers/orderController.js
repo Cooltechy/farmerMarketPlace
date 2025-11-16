@@ -73,27 +73,51 @@ const placeOrder = async (req, res) => {
 // Get buyer's order history with filtering and pagination
 const getBuyerOrderHistory = async (req, res) => {
     try {
-        let buyerId = req.query.buyerId || req.query.userId;
+        // Get user from session
+        if (!req.session || !req.session.user) {
+            return res.redirect('/login?error=Please log in to view order history');
+        }
         
-        // If no user ID provided, try to get any client user from database
-        if (!buyerId) {
-            const User = require('../models/User');
-            const clientUser = await User.findOne({ userType: 'client' });
-            if (clientUser) {
-                buyerId = clientUser._id.toString();
-            } else {
-                // Create a demo client if none exists
-                const demoClient = new User({
-                    name: 'Demo Client',
-                    email: 'client@demo.com',
-                    password: 'demo123',
-                    userType: 'client',
-                    contact: '9876543210'
-                });
-                await demoClient.save();
-                buyerId = demoClient._id.toString();
-                console.log('Created demo client for order history:', buyerId);
-            }
+        const user = req.session.user;
+        const buyerId = user._id;
+        
+
+        
+        // Verify user is a client
+        if (user.userType !== 'client') {
+            return res.render('order-history', {
+                orders: [],
+                orderStats: {
+                    totalOrders: 0,
+                    totalSpent: 0,
+                    pendingOrders: 0,
+                    deliveredOrders: 0,
+                    inTransitOrders: 0,
+                    cancelledOrders: 0,
+                    averageOrder: 0
+                },
+                totalOrders: 0,
+                pendingOrders: 0,
+                deliveredOrders: 0,
+                inTransitOrders: 0,
+                cancelledOrders: 0,
+                filteredCount: 0,
+                totalFilteredOrders: 0,
+                currentPage: 1,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPrevPage: false,
+                nextPage: 1,
+                prevPage: 1,
+                filters: {
+                    status: 'all',
+                    dateFrom: '',
+                    dateTo: '',
+                    limit: 10
+                },
+                buyerId: buyerId,
+                error: 'Client access required to view order history.'
+            });
         }
 
         // Extract filter parameters
@@ -103,7 +127,16 @@ const getBuyerOrderHistory = async (req, res) => {
         const skip = (pageNum - 1) * limitNum;
 
         // Build filter object - ensure proper ObjectId comparison
-        let filter = { buyerId: buyerId };
+        let filter = {};
+        
+        // Always convert buyerId to ObjectId for database query
+        try {
+            filter.buyerId = new mongoose.Types.ObjectId(buyerId);
+        } catch (error) {
+            console.error('Invalid buyerId format:', buyerId);
+            filter.buyerId = buyerId; // fallback to string
+        }
+
         
         if (status && status !== 'all') {
             filter.status = status;
@@ -133,15 +166,18 @@ const getBuyerOrderHistory = async (req, res) => {
             .skip(skip)
             .limit(limitNum);
 
-        // Get order statistics for all orders (not just filtered)
-        // Try both string and ObjectId match to handle mixed data types
+
+        // Get order statistics for all orders of this buyer (not just filtered)
+        let statsMatchCondition = {};
+        try {
+            statsMatchCondition.buyerId = new mongoose.Types.ObjectId(buyerId);
+        } catch (error) {
+            console.error('Invalid buyerId format for stats:', buyerId);
+            statsMatchCondition.buyerId = buyerId; // fallback to string
+        }
+        
         const orderStats = await Order.aggregate([
-            { $match: { 
-                $or: [
-                    { buyerId: buyerId },
-                    { buyerId: mongoose.Types.ObjectId.isValid(buyerId) ? new mongoose.Types.ObjectId(buyerId) : null }
-                ]
-            } },
+            { $match: statsMatchCondition },
             {
                 $group: {
                     _id: null,
@@ -369,27 +405,42 @@ const updateOrderStatus = async (req, res) => {
 // Get farmer's order history (orders received) with filtering and pagination
 const getFarmerOrderHistory = async (req, res) => {
     try {
-        let farmerId = req.query.farmerId || req.query.userId;
+        // Get user from session
+        if (!req.session || !req.session.user) {
+            return res.redirect('/login?error=Please log in to view order history');
+        }
         
-        // If no user ID provided, try to get any farmer user from database
-        if (!farmerId) {
-            const User = require('../models/User');
-            const farmerUser = await User.findOne({ userType: 'farmer' });
-            if (farmerUser) {
-                farmerId = farmerUser._id.toString();
-            } else {
-                // Create a demo farmer if none exists
-                const demoFarmer = new User({
-                    name: 'Demo Farmer',
-                    email: 'farmer@demo.com',
-                    password: 'demo123',
-                    userType: 'farmer',
-                    contact: '9876543210'
-                });
-                await demoFarmer.save();
-                farmerId = demoFarmer._id.toString();
-                console.log('Created demo farmer for order history:', farmerId);
-            }
+        const user = req.session.user;
+        const farmerId = user._id;
+        
+        // Verify user is a farmer
+        if (user.userType !== 'farmer') {
+            return res.render('farmer-orders', {
+                orders: [],
+                totalOrders: 0,
+                totalRevenue: 0,
+                pendingOrders: 0,
+                confirmedOrders: 0,
+                inTransitOrders: 0,
+                deliveredOrders: 0,
+                cancelledOrders: 0,
+                filteredCount: 0,
+                totalFilteredOrders: 0,
+                currentPage: 1,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPrevPage: false,
+                nextPage: 1,
+                prevPage: 1,
+                filters: {
+                    status: 'all',
+                    dateFrom: '',
+                    dateTo: '',
+                    limit: 10
+                },
+                farmerId: farmerId,
+                error: 'Farmer access required to view order history.'
+            });
         }
 
         // Extract filter parameters
@@ -398,14 +449,16 @@ const getFarmerOrderHistory = async (req, res) => {
         const limitNum = parseInt(limit);
         const skip = (pageNum - 1) * limitNum;
 
-        // Build filter object - handle ObjectId/string mismatch
-        const mongoose = require('mongoose');
-        let filter = {
-            $or: [
-                { farmerId: farmerId },
-                { farmerId: mongoose.Types.ObjectId.isValid(farmerId) ? new mongoose.Types.ObjectId(farmerId) : null }
-            ]
-        };
+        // Build filter object - handle ObjectId/string properly
+        let filter = {};
+        
+        // Always convert farmerId to ObjectId for database query
+        try {
+            filter.farmerId = new mongoose.Types.ObjectId(farmerId);
+        } catch (error) {
+            console.error('Invalid farmerId format:', farmerId);
+            filter.farmerId = farmerId; // fallback to string
+        }
         
         if (status && status !== 'all') {
             filter.status = status;
@@ -436,13 +489,16 @@ const getFarmerOrderHistory = async (req, res) => {
             .limit(limitNum);
 
         // Get comprehensive order statistics for all farmer orders (not just filtered)
+        let statsMatchCondition = {};
+        try {
+            statsMatchCondition.farmerId = new mongoose.Types.ObjectId(farmerId);
+        } catch (error) {
+            console.error('Invalid farmerId format for stats:', farmerId);
+            statsMatchCondition.farmerId = farmerId; // fallback to string
+        }
+        
         const orderStats = await Order.aggregate([
-            { $match: {
-                $or: [
-                    { farmerId: farmerId },
-                    { farmerId: mongoose.Types.ObjectId.isValid(farmerId) ? new mongoose.Types.ObjectId(farmerId) : null }
-                ]
-            } },
+            { $match: statsMatchCondition },
             {
                 $group: {
                     _id: null,

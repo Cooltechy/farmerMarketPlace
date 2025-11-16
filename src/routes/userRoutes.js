@@ -4,19 +4,25 @@ const {
     showRegisterPage, 
     showLoginPage, 
     registerUser, 
-    loginUser
+    loginUser,
+    logoutUser
 } = require('../controllers/userController');
+const { requireGuest } = require('../middleware/auth');
 
-// GET - Show registration page
-router.get('/register', showRegisterPage);
+// GET - Show registration page (only if not logged in)
+router.get('/register', requireGuest, showRegisterPage);
 
 // POST - Handle registration form submission
-router.post('/register', registerUser);
+router.post('/register', requireGuest, registerUser);
 
-// GET - Show login page
-router.get('/login', showLoginPage);
+// GET - Show login page (only if not logged in)
+router.get('/login', requireGuest, showLoginPage);
 
 // POST - Handle login form submission
-router.post('/login', loginUser);
+router.post('/login', requireGuest, loginUser);
+
+// POST - Handle logout
+router.post('/logout', logoutUser);
+router.get('/logout', logoutUser);
 
 module.exports = router;
