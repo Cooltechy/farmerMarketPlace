@@ -399,7 +399,6 @@
             <div class="logo">🛒 FarmerMarketPlace - Marketplace</div>
                         <div class="nav-links">
                 <a href="/search">Search Products</a>
-                <a href="/products">Browse Products</a>
                 <a href="/client-dashboard">Dashboard</a>
                 <a href="/orders/history">My Orders</a>
                 <a href="/negotiations/buyer-history?userId=<%= user._id %>">My Negotiations</a>
@@ -559,7 +558,7 @@
         <div class="negotiations-section" style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="color: #1976D2; margin: 0;">💬 My Price Negotiations</h2>
-                <a href="/products?userId=<%= user._id %>" style="color: #2196F3; text-decoration: none; font-weight: 500;">Browse Products →</a>
+                <a href="/search" style="color: #2196F3; text-decoration: none; font-weight: 500;">Search Products →</a>
             </div>
             
             <div class="negotiation-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
@@ -584,7 +583,7 @@
                         <div style="font-size: 2em; margin-bottom: 10px;">💬</div>
                         <p>No active negotiations yet!</p>
                         <p style="font-size: 0.9em; margin-top: 5px;">Start negotiating prices with farmers to get better deals.</p>
-                        <a href="/products?userId=<%= user._id %>" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 20px; font-size: 0.9em;">Start Negotiating</a>
+                        <a href="/search" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 20px; font-size: 0.9em;">Start Negotiating</a>
                     </div>
                 </div>
             </div>
